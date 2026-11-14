@@ -1,0 +1,82 @@
+<!doctype html><html><head><meta charset=utf-8>
+<meta name=viewport content="width=device-width,initial-scale=1"><title>LanHop</title>
+<style>
+:root{--bg:#f6f7f9;--card:#fff;--tx:#1b1f24;--mu:#667;--ac:#0b6bcb;--ac2:#e6f0fb;--bd:#dde1e6;--ok:#1a7f4b;--er:#c62828}
+@media(prefers-color-scheme:dark){:root{--bg:#111418;--card:#1a1f26;--tx:#e8ecf1;--mu:#94a0ad;--ac:#5aa9ff;--ac2:#1d2b3d;--bd:#2c343e;--ok:#4cc38a;--er:#ff7b7b}}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--tx);font:16px/1.4 system-ui,sans-serif}
+header{display:flex;justify-content:space-between;align-items:center;padding:14px 16px;position:sticky;top:0;background:var(--bg);z-index:2}
+header b{font-size:20px}main{max-width:640px;margin:0 auto;padding:0 16px 40px}
+section{background:var(--card);border:1px solid var(--bd);border-radius:14px;padding:14px;margin-bottom:14px}
+h2{margin:0 0 10px;font-size:13px;color:var(--mu);text-transform:uppercase;letter-spacing:.04em}
+button{font:inherit;border:1px solid var(--bd);background:var(--card);color:var(--tx);border-radius:10px;padding:8px 14px;cursor:pointer}
+button.p,.chip.on{background:var(--ac);color:#fff;border-color:var(--ac)}
+.chips{display:flex;flex-wrap:wrap;gap:8px}.chip{border-radius:20px}
+#drop{border:2px dashed var(--bd);border-radius:14px;padding:26px;text-align:center;margin-bottom:14px;color:var(--mu)}
+#drop.over{border-color:var(--ac);background:var(--ac2)}
+textarea{width:100%;min-height:70px;border:1px solid var(--bd);border-radius:10px;padding:10px;font:inherit;background:var(--bg);color:var(--tx);margin-bottom:8px}
+.row{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:10px 0;border-top:1px solid var(--bd)}
+.row:first-of-type{border-top:0}.row div{min-width:0;overflow-wrap:anywhere}.mu{color:var(--mu);font-size:13px}
+.act{display:flex;gap:6px;flex-shrink:0}a.btn{background:var(--ac);color:#fff;border-radius:10px;padding:8px 14px;text-decoration:none}
+progress{width:100%;height:8px}.ok{color:var(--ok)}.er{color:var(--er)}pre{margin:4px 0 0;white-space:pre-wrap;font:inherit}
+</style></head><body>
+<header><b>LanHop</b><button id=me></button></header>
+<main>
+<section><h2 id=toh></h2><div id=devs class=chips></div><p id=alone class=mu></p></section>
+<div id=drop><input type=file id=pick multiple hidden><p id=dh></p><button class=p id=pickb></button></div>
+<section><textarea id=txt></textarea><button class=p id=sendt></button></section>
+<section><h2 id=inh></h2><div id=inbox></div></section>
+<section id=outs hidden><h2 id=outh></h2><div id=tr></div></section>
+</main>
+<script>
+const L=(navigator.language||'en').startsWith('ar')?'ar':'en';
+const T={en:{to:'Send to',all:'Everyone',host:'folder on this computer',dh:'Drop or paste files here',pick:'Choose files',ph:'Type or paste text to send...',st:'Send text',inb:'Received',out:'Sent',save:'Save',no:'Dismiss',copy:'Copy',empty:'Nothing yet.',alone:'No other devices yet. Open this page on another device on the same Wi-Fi.',pin:'PIN',sent:'Text sent',me:'Rename'},
+ar:{to:'إرسال إلى',all:'الجميع',host:'مجلد هذا الكمبيوتر',dh:'أفلت الملفات هنا أو الصقها',pick:'اختر ملفات',ph:'اكتب أو الصق نصًا للإرسال...',st:'إرسال النص',inb:'المستلَم',out:'المُرسَل',save:'حفظ',no:'تجاهل',copy:'نسخ',empty:'لا شيء بعد.',alone:'لا توجد أجهزة أخرى بعد. افتح هذه الصفحة على جهاز آخر في نفس شبكة الواي فاي.',pin:'رمز PIN',sent:'تم إرسال النص',me:'تغيير الاسم'}}[L];
+document.documentElement.lang=L;document.documentElement.dir=L=='ar'?'rtl':'ltr';
+const $=s=>document.querySelector(s);
+function h(t,a,...c){const e=document.createElement(t);for(const k in a||{}){if(k=='on')for(const v in a.on)e.addEventListener(v,a.on[v]);else if(k in e)e[k]=a[k];else e.setAttribute(k,a[k])}for(const x of c.flat())if(x!=null)e.append(x);return e}
+function sz(n){const u=['B','KB','MB','GB'];let i=0;while(n>=1024&&i<3){n/=1024;i++}return n.toFixed(i?1:0)+' '+u[i]}
+const rnd=()=>Math.random().toString(36).slice(2,10);
+const ID=localStorage.lhid||(localStorage.lhid=rnd()+Date.now().toString(36));
+const ua=navigator.userAgent;
+let NAME=localStorage.lhname||((/iPhone|iPad/.test(ua)?'iPhone':/Android/.test(ua)?'Android':/Windows/.test(ua)?'Windows':/Mac/.test(ua)?'Mac':'Linux')+' '+Math.floor(10+Math.random()*90));
+let PIN=sessionStorage.pin||'',target='all',S={devices:[],inbox:[]},TR=[];
+$('#toh').textContent=T.to;$('#dh').textContent=T.dh;$('#pickb').textContent=T.pick;$('#txt').placeholder=T.ph;
+$('#sendt').textContent=T.st;$('#inh').textContent=T.inb;$('#outh').textContent=T.out;$('#alone').textContent=T.alone;
+function drawMe(){$('#me').textContent=NAME;$('#me').title=T.me}drawMe();
+$('#me').onclick=()=>{const n=prompt(T.me,NAME);if(n&&n.trim()){NAME=n.trim().slice(0,40);localStorage.lhname=NAME;drawMe()}};
+async function api(p,o={}){o.headers=Object.assign({'X-Pin':PIN},o.headers||{});let r=await fetch(p,o);
+if(r.status==401){PIN=prompt(T.pin)||'';sessionStorage.pin=PIN;if(!PIN)throw 0;o.headers['X-Pin']=PIN;r=await fetch(p,o)}return r}
+const post=(p,b)=>api(p,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(b)});
+function render(){
+ if(target!='all'&&!S.devices.some(d=>d.id==target))target='all';
+ const ch=[h('button',{className:'chip'+(target=='all'?' on':''),on:{click:()=>{target='all';render()}}},T.all)];
+ S.devices.forEach(d=>ch.push(h('button',{className:'chip'+(target==d.id?' on':''),on:{click:()=>{target=d.id;render()}}},d.host?d.name+' ('+T.host+')':d.name)));
+ $('#devs').replaceChildren(...ch);$('#alone').hidden=S.devices.length>1;
+ const rows=S.inbox.map(i=>{
+  const dis=h('button',{on:{click:async()=>{await post('/api/dismiss',{id:ID,item:i.id});poll1()}}},T.no);
+  if(i.kind=='file')return h('div',{className:'row'},h('div',{},i.name,h('div',{className:'mu'},sz(i.size)+' - '+i.from_name)),
+   h('div',{className:'act'},h('a',{className:'btn',href:'/dl/'+i.id+'?pin='+encodeURIComponent(PIN),download:i.name},T.save),dis));
+  return h('div',{className:'row'},h('div',{},h('div',{className:'mu'},i.from_name),h('pre',{},i.text)),
+   h('div',{className:'act'},h('button',{on:{click:()=>copy(i.text)}},T.copy),dis));});
+ $('#inbox').replaceChildren(...(rows.length?rows:[h('p',{className:'mu'},T.empty)]));
+}
+function copy(t){if(navigator.clipboard&&window.isSecureContext)return navigator.clipboard.writeText(t);
+ const a=h('textarea',{value:t});document.body.append(a);a.select();document.execCommand('copy');a.remove()}
+function drawTR(){$('#outs').hidden=!TR.length;$('#tr').replaceChildren(...TR.slice(0,8).map(r=>h('div',{className:'row'},
+ h('div',{},r.name,r.s=='up'?h('progress',{max:1,value:r.p}):h('div',{className:r.s=='ok'?'ok':'er'},r.s=='ok'?'OK':'Error')))))}
+function sendFile(f){const r={name:f.name,p:0,s:'up'};TR.unshift(r);drawTR();const x=new XMLHttpRequest();x.open('POST','/api/send');
+ x.setRequestHeader('X-Pin',PIN);x.setRequestHeader('X-From',ID);x.setRequestHeader('X-FromName',encodeURIComponent(NAME));
+ x.setRequestHeader('X-To',target);x.setRequestHeader('X-Name',encodeURIComponent(f.name));
+ x.upload.onprogress=e=>{r.p=e.loaded/e.total;drawTR()};
+ x.onload=()=>{r.s=x.status==200?'ok':'err';drawTR()};x.onerror=()=>{r.s='err';drawTR()};x.send(f)}
+const files=l=>[...l].forEach(sendFile);
+$('#pickb').onclick=()=>$('#pick').click();$('#pick').onchange=e=>{files(e.target.files);e.target.value=''};
+const dz=$('#drop');['dragover','dragenter'].forEach(v=>dz.addEventListener(v,e=>{e.preventDefault();dz.classList.add('over')}));
+['dragleave','drop'].forEach(v=>dz.addEventListener(v,e=>{e.preventDefault();dz.classList.remove('over')}));
+dz.addEventListener('drop',e=>files(e.dataTransfer.files));
+document.addEventListener('paste',e=>{if(e.clipboardData.files.length)files(e.clipboardData.files)});
+$('#sendt').onclick=async()=>{const t=$('#txt').value.trim();if(!t)return;
+ await post('/api/text',{from:ID,name:NAME,to:target,text:t});$('#txt').value='';TR.unshift({name:T.sent,s:'ok'});drawTR()};
+async function poll1(){try{const r=await api('/api/state?id='+ID+'&name='+encodeURIComponent(NAME));if(r.ok){S=await r.json();render()}}catch(e){}}
+(async function loop(){await poll1();setTimeout(loop,1500)})();
+</script></body></html>

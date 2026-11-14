@@ -1,0 +1,15 @@
+name: lanhop
+description: Send files and text between your PC and Android phone over Wi-Fi.
+publish_to: none
+version: 1.0.0
+environment:
+  sdk: ">=3.0.0 <4.0.0"
+dependencies:
+  flutter:
+    sdk: flutter
+  path_provider: ^2.1.0
+  url_launcher: ^6.2.0
+flutter:
+  uses-material-design: true
+  assets:
+    - assets/index.html
